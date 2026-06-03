@@ -17,7 +17,6 @@ import '../../../core/widgets/xp_progress_bar.dart';
 import '../../auth/presentation/auth_provider.dart';
 import '../../gamification/domain/achievement.dart';
 import '../../gamification/presentation/gamification_provider.dart';
-import '../../leaderboard/presentation/leaderboard_provider.dart';
 import '../domain/quest_entity.dart';
 import 'quest_card_widget.dart';
 import 'quest_provider.dart';
@@ -99,7 +98,7 @@ class _QuestListScreenState extends ConsumerState<QuestListScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: CircleAvatar(
-              backgroundColor: AppColors.surfaceAlt,
+              backgroundColor: context.palette.surfaceAlt,
               foregroundImage: user?.image.isNotEmpty == true
                   ? CachedNetworkImageProvider(user!.image)
                   : null,
@@ -114,7 +113,7 @@ class _QuestListScreenState extends ConsumerState<QuestListScreen> {
         children: [
           RefreshIndicator(
             color: AppColors.gold,
-            backgroundColor: AppColors.surface,
+            backgroundColor: context.palette.surface,
             onRefresh: () =>
                 ref.read(questsProvider.notifier).load(refresh: true),
             child: CustomScrollView(
@@ -202,7 +201,7 @@ class _QuestListScreenState extends ConsumerState<QuestListScreen> {
                                               vertical: 6,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: AppColors.surfaceAlt,
+                                              color: context.palette.surfaceAlt,
                                               borderRadius:
                                                   BorderRadius.circular(999),
                                               border: Border.all(
@@ -299,7 +298,9 @@ class _QuestListScreenState extends ConsumerState<QuestListScreen> {
     final event = await ref
         .read(gamificationProvider.notifier)
         .completeQuest(quest);
-    ref.invalidate(leaderboardProvider);
+    if (!mounted) {
+      return;
+    }
     setState(() => _floatingXp = '+${event.xpGained} XP');
     Future<void>.delayed(450.ms, () {
       if (mounted) {
@@ -330,7 +331,7 @@ class _QuestListScreenState extends ConsumerState<QuestListScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppColors.surface,
+          backgroundColor: context.palette.surface,
           title: Text(
             achievement.title,
             style: Theme.of(context).textTheme.headlineMedium,
@@ -372,7 +373,7 @@ class _QuestListScreenState extends ConsumerState<QuestListScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppColors.surface,
+          backgroundColor: context.palette.surface,
           content:
               Column(
                     mainAxisSize: MainAxisSize.min,
@@ -416,9 +417,9 @@ class _EmptySearchState extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.search_off_rounded,
-              color: AppColors.textSecondary,
+              color: context.palette.textSecondary,
               size: 54,
             ),
             const SizedBox(height: 12),
@@ -451,13 +452,13 @@ class _HeaderCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.borderColor),
-        gradient: const LinearGradient(
+        border: Border.all(color: context.palette.border),
+        gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [AppColors.surfaceAlt, AppColors.surface],
+          colors: [context.palette.surfaceAlt, context.palette.surface],
         ),
       ),
       child: Column(
@@ -475,7 +476,7 @@ class _HeaderCard extends StatelessWidget {
                   child: Text(
                     '${gamification.level}',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                      color: AppColors.background,
+                      color: AppColors.onAccent,
                     ),
                   ),
                 ),
@@ -497,15 +498,23 @@ class _HeaderCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Lottie.asset('assets/animations/streak.json', width: 42),
-                  Text(
-                    '${gamification.streak}',
-                    style: Theme.of(context).textTheme.headlineMedium,
+              Tooltip(
+                message: gamification.streak > 0
+                    ? '${gamification.streak}-day streak'
+                    : 'Complete a quest to start a streak',
+                child: Opacity(
+                  opacity: gamification.streak > 0 ? 1 : 0.4,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Lottie.asset('assets/animations/streak.json', width: 42),
+                      Text(
+                        '${gamification.streak}',
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ],
           ),
@@ -544,9 +553,9 @@ class _QuestSearchBar extends ConsumerWidget {
                 icon: const Icon(Icons.close_rounded),
               ),
             ],
-      backgroundColor: const WidgetStatePropertyAll(AppColors.surface),
-      side: const WidgetStatePropertyAll(
-        BorderSide(color: AppColors.borderColor),
+      backgroundColor: WidgetStatePropertyAll(context.palette.surface),
+      side: WidgetStatePropertyAll(
+        BorderSide(color: context.palette.border),
       ),
       elevation: const WidgetStatePropertyAll(0),
     );
@@ -624,10 +633,10 @@ class _FilterChip extends StatelessWidget {
       child: AnimatedContainer(
         duration: 180.ms,
         decoration: BoxDecoration(
-          color: selected ? AppColors.gold : AppColors.surfaceAlt,
+          color: selected ? AppColors.gold : context.palette.surfaceAlt,
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: selected ? AppColors.gold : AppColors.borderColor,
+            color: selected ? AppColors.gold : context.palette.border,
           ),
         ),
         child: InkWell(
@@ -639,8 +648,8 @@ class _FilterChip extends StatelessWidget {
               label,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                 color: selected
-                    ? AppColors.background
-                    : AppColors.textSecondary,
+                    ? AppColors.onAccent
+                    : context.palette.textSecondary,
               ),
             ),
           ),

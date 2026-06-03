@@ -93,9 +93,9 @@ class _QuoteDetailBody extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: context.palette.surface,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.borderColor),
+                border: Border.all(color: context.palette.border),
               ),
               child: Text(
                 '"${quote.body}"',
@@ -139,7 +139,7 @@ class _QuoteDetailBody extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: AppColors.surfaceAlt,
+                        color: context.palette.surfaceAlt,
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(

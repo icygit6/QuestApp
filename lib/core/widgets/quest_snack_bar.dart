@@ -17,7 +17,7 @@ void showQuestSnackBar(
           Expanded(child: Text(message)),
         ],
       ),
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.palette.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
         side: BorderSide(color: color),

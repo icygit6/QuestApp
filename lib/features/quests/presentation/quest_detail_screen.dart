@@ -9,7 +9,6 @@ import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/widgets/quest_snack_bar.dart';
 import '../../gamification/presentation/gamification_provider.dart';
-import '../../leaderboard/presentation/leaderboard_provider.dart';
 import '../domain/quest_entity.dart';
 import 'quest_provider.dart';
 
@@ -149,7 +148,6 @@ class _QuestDetailScreenState extends ConsumerState<QuestDetailScreen> {
     final event = await ref
         .read(gamificationProvider.notifier)
         .completeQuest(quest);
-    ref.invalidate(leaderboardProvider);
     if (mounted) {
       setState(() => _isCompleting = false);
       await _showCompletion(context, event);
@@ -164,7 +162,7 @@ class _QuestDetailScreenState extends ConsumerState<QuestDetailScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppColors.surface,
+          backgroundColor: context.palette.surface,
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -203,9 +201,9 @@ class _DetailHeroPanel extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.borderColor),
+        border: Border.all(color: context.palette.border),
       ),
       child: Column(
         children: [
@@ -243,12 +241,12 @@ class _CompleteQuestButton extends StatelessWidget {
         backgroundColor: completed ? Colors.grey.shade800 : AppColors.gold,
         foregroundColor: completed
             ? Colors.grey.shade500
-            : AppColors.background,
+            : AppColors.onAccent,
         disabledBackgroundColor: isLoading
             ? AppColors.goldDark
             : Colors.grey.shade800,
         disabledForegroundColor: isLoading
-            ? AppColors.background
+            ? AppColors.onAccent
             : Colors.grey.shade500,
       ),
       child: SizedBox(
@@ -260,7 +258,7 @@ class _CompleteQuestButton extends StatelessWidget {
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: AppColors.background,
+                    color: AppColors.onAccent,
                   ),
                 )
               : Row(
@@ -298,9 +296,9 @@ class _DetailPanel extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.surfaceAlt,
+        color: context.palette.surfaceAlt,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.borderColor),
+        border: Border.all(color: context.palette.border),
       ),
       child: child,
     );
@@ -311,26 +309,27 @@ class _StatBadge extends StatelessWidget {
   const _StatBadge({
     required this.icon,
     required this.label,
-    this.color = AppColors.textPrimary,
+    this.color,
   });
 
   final IconData icon;
   final String label;
-  final Color color;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
+    final iconColor = color ?? context.palette.textPrimary;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: context.palette.surface,
           borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: AppColors.borderColor),
+          border: Border.all(color: context.palette.border),
         ),
         child: Column(
           children: [
-            Icon(icon, color: color),
+            Icon(icon, color: iconColor),
             const SizedBox(height: 5),
             FittedBox(
               child: Text(label, style: Theme.of(context).textTheme.labelSmall),

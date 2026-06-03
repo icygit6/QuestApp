@@ -48,11 +48,11 @@ class PostsTab extends ConsumerWidget {
                           icon: const Icon(Icons.close_rounded),
                         ),
                       ],
-                backgroundColor: const WidgetStatePropertyAll(
-                  AppColors.surface,
+                backgroundColor: WidgetStatePropertyAll(
+                  context.palette.surface,
                 ),
-                side: const WidgetStatePropertyAll(
-                  BorderSide(color: AppColors.borderColor),
+                side: WidgetStatePropertyAll(
+                  BorderSide(color: context.palette.border),
                 ),
                 elevation: const WidgetStatePropertyAll(0),
               ),
@@ -128,9 +128,9 @@ class _PostCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderColor),
+        border: Border.all(color: context.palette.border),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),

@@ -22,12 +22,12 @@ class AchievementCard extends StatelessWidget {
                 width: 150,
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.surface,
+                  color: context.palette.surface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
                     color: achievement.isUnlocked
                         ? AppColors.gold
-                        : AppColors.borderColor,
+                        : context.palette.border,
                   ),
                   boxShadow: achievement.isUnlocked
                       ? const [
@@ -50,7 +50,7 @@ class AchievementCard extends StatelessWidget {
                               : Icons.lock_rounded,
                           color: achievement.isUnlocked
                               ? AppColors.gold
-                              : AppColors.textSecondary,
+                              : context.palette.textSecondary,
                           size: 32,
                         ),
                         const SizedBox(height: 12),
@@ -75,7 +75,7 @@ class AchievementCard extends StatelessWidget {
                       Positioned.fill(
                         child: DecoratedBox(
                           decoration: BoxDecoration(
-                            color: AppColors.background.withValues(alpha: 0.36),
+                            color: AppColors.onAccent.withValues(alpha: 0.36),
                             borderRadius: BorderRadius.circular(10),
                           ),
                         ),
@@ -93,7 +93,7 @@ class AchievementCard extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppColors.surface,
+          backgroundColor: context.palette.surface,
           title: Text(achievement.title),
           content: Text(
             achievement.unlockedAt == null

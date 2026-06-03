@@ -52,7 +52,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [AppColors.background, Color(0xFF1A1F3A)],
+            colors: [AppColors.heroBackground, AppColors.heroGradientEnd],
           ),
         ),
         child: SafeArea(
@@ -152,13 +152,13 @@ class _AuthProviderSelector extends ConsumerWidget {
                 ref.read(authProviderSelectionProvider.notifier).state =
                     provider,
             selectedColor: AppColors.gold,
-            backgroundColor: AppColors.surface,
+            backgroundColor: context.palette.surface,
             labelStyle: TextStyle(
               color: selected == provider
-                  ? AppColors.background
-                  : AppColors.textSecondary,
+                  ? AppColors.onAccent
+                  : context.palette.textSecondary,
             ),
-            side: const BorderSide(color: AppColors.borderColor),
+            side: BorderSide(color: context.palette.border),
           ),
       ],
     );

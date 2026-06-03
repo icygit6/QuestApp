@@ -111,10 +111,10 @@ class _QuestCardFrame extends StatelessWidget {
       decoration: BoxDecoration(
         color: justCompleted
             ? AppColors.easy.withValues(alpha: 0.18)
-            : AppColors.surface,
+            : context.palette.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: justCompleted ? AppColors.easy : AppColors.borderColor,
+          color: justCompleted ? AppColors.easy : context.palette.border,
         ),
         boxShadow: quest.isCompleted || justCompleted
             ? const [
@@ -166,8 +166,8 @@ class _QuestCardFrame extends StatelessWidget {
                                         .titleLarge
                                         ?.copyWith(
                                           color: quest.isCompleted
-                                              ? AppColors.textSecondary
-                                              : AppColors.textPrimary,
+                                              ? context.palette.textSecondary
+                                              : context.palette.textPrimary,
                                           decoration: quest.isCompleted
                                               ? TextDecoration.lineThrough
                                               : null,
@@ -239,7 +239,7 @@ class _QuestCardFrame extends StatelessWidget {
   void _showQuestMenu(BuildContext context) {
     showModalBottomSheet<void>(
       context: context,
-      backgroundColor: AppColors.surface,
+      backgroundColor: context.palette.surface,
       showDragHandle: true,
       builder: (context) {
         return SafeArea(
@@ -290,7 +290,7 @@ class _CompletionCheckbox extends StatelessWidget {
       activeColor: AppColors.easy,
       checkColor: Colors.white,
       side: BorderSide(
-        color: completed ? AppColors.easy : AppColors.borderColor,
+        color: completed ? AppColors.easy : context.palette.border,
       ),
       fillColor: WidgetStateProperty.resolveWith((states) {
         if (completed) {
@@ -377,9 +377,9 @@ class _CategoryIcon extends StatelessWidget {
       width: 36,
       height: 36,
       decoration: BoxDecoration(
-        color: AppColors.surfaceAlt,
+        color: context.palette.surfaceAlt,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.borderColor),
+        border: Border.all(color: context.palette.border),
       ),
       child: Icon(_categoryIcon(category), color: AppColors.gold, size: 20),
     );
@@ -390,23 +390,26 @@ class _MetaPill extends StatelessWidget {
   const _MetaPill({
     required this.icon,
     required this.label,
-    this.color = AppColors.textSecondary,
+    this.color,
   });
 
   final IconData icon;
   final String label;
-  final Color color;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
+    final pillColor = color ?? context.palette.textSecondary;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: color, size: 15),
+        Icon(icon, color: pillColor, size: 15),
         const SizedBox(width: 4),
         Text(
           label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(color: color),
+          style: Theme.of(
+            context,
+          ).textTheme.labelSmall?.copyWith(color: pillColor),
         ),
       ],
     );

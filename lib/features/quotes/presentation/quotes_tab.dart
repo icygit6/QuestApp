@@ -44,9 +44,9 @@ class QuotesTab extends ConsumerWidget {
                       icon: const Icon(Icons.close_rounded),
                     ),
                   ],
-            backgroundColor: const WidgetStatePropertyAll(AppColors.surface),
-            side: const WidgetStatePropertyAll(
-              BorderSide(color: AppColors.borderColor),
+            backgroundColor: WidgetStatePropertyAll(context.palette.surface),
+            side: WidgetStatePropertyAll(
+              BorderSide(color: context.palette.border),
             ),
             elevation: const WidgetStatePropertyAll(0),
           ),
@@ -105,9 +105,9 @@ class _QuoteCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderColor),
+        border: Border.all(color: context.palette.border),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -163,7 +163,7 @@ class _QuoteCard extends StatelessWidget {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: AppColors.surfaceAlt,
+                          color: context.palette.surfaceAlt,
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(

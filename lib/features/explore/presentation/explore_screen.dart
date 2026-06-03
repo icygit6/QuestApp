@@ -15,11 +15,11 @@ class ExploreScreen extends StatelessWidget {
       child: Scaffold(
         appBar: AppBar(
           title: const Text(AppStrings.explore),
-          bottom: const TabBar(
+          bottom: TabBar(
             labelColor: AppColors.gold,
-            unselectedLabelColor: AppColors.textSecondary,
+            unselectedLabelColor: context.palette.textSecondary,
             indicatorColor: AppColors.gold,
-            tabs: [
+            tabs: const [
               Tab(text: AppStrings.quotes),
               Tab(text: AppStrings.posts),
             ],

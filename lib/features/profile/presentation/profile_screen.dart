@@ -69,7 +69,7 @@ class ProfileScreen extends ConsumerWidget {
             ),
             TabBar(
               labelColor: AppColors.gold,
-              unselectedLabelColor: AppColors.textSecondary,
+              unselectedLabelColor: context.palette.textSecondary,
               indicatorColor: AppColors.gold,
               labelStyle: const TextStyle(
                 fontFamily: 'Cinzel',
@@ -83,7 +83,7 @@ class ProfileScreen extends ConsumerWidget {
                     isLabelVisible: completedCount > 0,
                     label: Text('$completedCount'),
                     backgroundColor: AppColors.gold,
-                    textColor: AppColors.background,
+                    textColor: AppColors.onAccent,
                     child: const Text('COMPLETED QUESTS'),
                   ),
                 ),
@@ -227,9 +227,9 @@ class _CompletedQuestTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: AppColors.borderColor),
+        border: Border.all(color: context.palette.border),
       ),
       child: Row(
         children: [
@@ -256,7 +256,7 @@ class _CompletedQuestTile extends StatelessWidget {
                           style: Theme.of(context).textTheme.bodyLarge
                               ?.copyWith(
                                 decoration: TextDecoration.lineThrough,
-                                decorationColor: AppColors.textSecondary,
+                                decorationColor: context.palette.textSecondary,
                               ),
                         ),
                         const SizedBox(height: 8),
@@ -324,9 +324,9 @@ class _EmptyCompletedState extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.verified_outlined,
-              color: AppColors.textSecondary,
+              color: context.palette.textSecondary,
               size: 54,
             ),
             const SizedBox(height: 12),
@@ -359,9 +359,9 @@ class _HeroSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.borderColor),
+        border: Border.all(color: context.palette.border),
       ),
       child: Column(
         children: [
@@ -374,7 +374,7 @@ class _HeroSection extends StatelessWidget {
             ),
             child: CircleAvatar(
               radius: 48,
-              backgroundColor: AppColors.surfaceAlt,
+              backgroundColor: context.palette.surfaceAlt,
               foregroundImage: user.image.isNotEmpty
                   ? CachedNetworkImageProvider(user.image)
                   : null,

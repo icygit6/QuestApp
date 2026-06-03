@@ -21,9 +21,9 @@ class MainShell extends ConsumerWidget {
     return Scaffold(
       body: child,
       bottomNavigationBar: DecoratedBox(
-        decoration: const BoxDecoration(
-          color: Color(0xFF0D1117),
-          border: Border(top: BorderSide(color: AppColors.borderColor)),
+        decoration: BoxDecoration(
+          color: context.palette.navBackground,
+          border: Border(top: BorderSide(color: context.palette.border)),
         ),
         child: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,

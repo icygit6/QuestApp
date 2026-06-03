@@ -77,7 +77,7 @@ class _GradientButtonState extends State<GradientButton> {
                                 widget.icon,
                                 color: widget.danger
                                     ? AppColors.danger
-                                    : AppColors.background,
+                                    : AppColors.onAccent,
                               ),
                               const SizedBox(width: 10),
                             ],
@@ -87,7 +87,7 @@ class _GradientButtonState extends State<GradientButton> {
                                   ?.copyWith(
                                     color: widget.danger
                                         ? AppColors.danger
-                                        : AppColors.background,
+                                        : AppColors.onAccent,
                                   ),
                             ),
                           ],

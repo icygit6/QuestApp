@@ -83,7 +83,7 @@ class StatsWidget extends StatelessWidget {
                   value: (gamification.nextLevelXp - gamification.xp)
                       .clamp(1, gamification.nextLevelXp)
                       .toDouble(),
-                  color: AppColors.borderColor,
+                  color: context.palette.border,
                   radius: 14,
                   title: '',
                 ),
@@ -157,7 +157,7 @@ class _StatCard extends StatelessWidget {
               return Text(
                 value.endsWith('d') ? '${number}d' : number.toString(),
                 style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  color: AppColors.textPrimary,
+                  color: context.palette.textPrimary,
                 ),
               );
             },
@@ -204,9 +204,9 @@ class _CardFrame extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderColor),
+        border: Border.all(color: context.palette.border),
       ),
       child: child,
     ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.08);

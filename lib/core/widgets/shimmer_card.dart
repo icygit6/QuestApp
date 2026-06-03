@@ -9,13 +9,13 @@ class ShimmerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Shimmer.fromColors(
-      baseColor: AppColors.surface,
-      highlightColor: AppColors.surfaceAlt,
+      baseColor: context.palette.surface,
+      highlightColor: context.palette.surfaceAlt,
       child: Container(
         height: 112,
         margin: const EdgeInsets.only(bottom: 14),
         decoration: BoxDecoration(
-          color: AppColors.surfaceAlt,
+          color: context.palette.surfaceAlt,
           borderRadius: BorderRadius.circular(12),
         ),
       ),

@@ -58,9 +58,9 @@ class SettingsScreen extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: AppColors.surface,
+              color: context.palette.surface,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.borderColor),
+              border: Border.all(color: context.palette.border),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -92,7 +92,7 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppColors.surface,
+          backgroundColor: context.palette.surface,
           title: const Text('Reset progress?'),
           content: const Text(
             'XP, streaks, daily history, achievements, and local quest progress will be reset.',
@@ -109,7 +109,7 @@ class SettingsScreen extends ConsumerWidget {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.danger,
-                foregroundColor: AppColors.textPrimary,
+                foregroundColor: Colors.white,
               ),
               onPressed: () => Navigator.of(context).pop(true),
               child: const Text('RESET EVERYTHING'),
@@ -149,7 +149,7 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          backgroundColor: AppColors.surface,
+          backgroundColor: context.palette.surface,
           title: const Text('Privacy Policy'),
           content: const Text(
             'QuestBoard stores your token securely on this device and keeps XP, streak, quest cache, and achievements locally.',
@@ -186,9 +186,9 @@ class _SettingsTile extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: context.palette.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.borderColor),
+        border: Border.all(color: context.palette.border),
       ),
       child: ListTile(
         onTap: onTap,
@@ -196,7 +196,7 @@ class _SettingsTile extends StatelessWidget {
         title: Text(
           title,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-            color: titleColor ?? AppColors.textPrimary,
+            color: titleColor ?? context.palette.textPrimary,
             fontSize: 16,
           ),
         ),

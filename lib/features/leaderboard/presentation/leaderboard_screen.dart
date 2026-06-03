@@ -45,9 +45,9 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               leading: const Icon(Icons.search_rounded, color: AppColors.gold),
               onChanged: (value) =>
                   ref.read(leaderboardSearchProvider.notifier).state = value,
-              backgroundColor: const WidgetStatePropertyAll(AppColors.surface),
-              side: const WidgetStatePropertyAll(
-                BorderSide(color: AppColors.borderColor),
+              backgroundColor: WidgetStatePropertyAll(context.palette.surface),
+              side: WidgetStatePropertyAll(
+                BorderSide(color: context.palette.border),
               ),
               elevation: const WidgetStatePropertyAll(0),
             ),
@@ -166,7 +166,7 @@ class _PodiumSpot extends StatelessWidget {
       decoration: BoxDecoration(
         color: entry.isCurrentUser
             ? AppColors.gold.withValues(alpha: 0.15)
-            : AppColors.surface,
+            : context.palette.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: color),
       ),
@@ -186,7 +186,7 @@ class _PodiumSpot extends StatelessWidget {
                   .shimmer(duration: 1800.ms, color: color),
               CircleAvatar(
                 radius: avatarRadius,
-                backgroundColor: AppColors.surfaceAlt,
+                backgroundColor: context.palette.surfaceAlt,
                 foregroundImage: entry.avatarUrl.isNotEmpty
                     ? CachedNetworkImageProvider(entry.avatarUrl)
                     : null,
@@ -244,10 +244,10 @@ class _LeaderboardRow extends StatelessWidget {
       decoration: BoxDecoration(
         color: highlighted
             ? AppColors.gold.withValues(alpha: 0.15)
-            : AppColors.surface,
+            : context.palette.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: highlighted ? AppColors.gold : AppColors.borderColor,
+          color: highlighted ? AppColors.gold : context.palette.border,
         ),
       ),
       child: Row(
@@ -266,7 +266,7 @@ class _LeaderboardRow extends StatelessWidget {
             ),
           ),
           CircleAvatar(
-            backgroundColor: AppColors.surfaceAlt,
+            backgroundColor: context.palette.surfaceAlt,
             foregroundImage: entry.avatarUrl.isNotEmpty
                 ? CachedNetworkImageProvider(entry.avatarUrl)
                 : null,
