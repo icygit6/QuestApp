@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/empty_state_widget.dart';
 import '../../../core/widgets/error_state_widget.dart';
+import '../../favorites/presentation/favorites_provider.dart';
 import '../domain/quote_entity.dart';
 import 'quotes_provider.dart';
 
@@ -16,6 +17,14 @@ class QuotesTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(quotesProvider);
     final query = ref.watch(quotesSearchProvider);
+    final favorites = ref.watch(favoritesProvider);
+    final favoritesOnly = ref.watch(quoteFavoritesOnlyProvider);
+
+    final visibleQuotes = favoritesOnly
+        ? state.quotes
+              .where((quote) => favorites.isQuoteFavorite(quote.id))
+              .toList(growable: false)
+        : state.quotes;
 
     return RefreshIndicator(
       color: AppColors.gold,
@@ -51,6 +60,35 @@ class QuotesTab extends ConsumerWidget {
             elevation: const WidgetStatePropertyAll(0),
           ),
           const SizedBox(height: 12),
+          Row(
+            children: [
+              FilterChip(
+                label: const Text('Favorites'),
+                avatar: Icon(
+                  favoritesOnly
+                      ? Icons.bookmark_rounded
+                      : Icons.bookmark_border_rounded,
+                  size: 18,
+                  color: favoritesOnly
+                      ? AppColors.onAccent
+                      : AppColors.gold,
+                ),
+                selected: favoritesOnly,
+                showCheckmark: false,
+                selectedColor: AppColors.gold,
+                backgroundColor: context.palette.surface,
+                side: BorderSide(color: context.palette.border),
+                labelStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: favoritesOnly
+                      ? AppColors.onAccent
+                      : context.palette.textSecondary,
+                ),
+                onSelected: (value) =>
+                    ref.read(quoteFavoritesOnlyProvider.notifier).state = value,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
           if (state.status == QuotesStatus.loading && state.quotes.isEmpty)
             const LinearProgressIndicator(color: AppColors.gold),
           if (state.isRefreshing)
@@ -67,13 +105,16 @@ class QuotesTab extends ConsumerWidget {
                     ref.read(quotesProvider.notifier).load(refresh: true),
               ),
             )
-          else if (state.status == QuotesStatus.loaded && state.quotes.isEmpty)
-            const QuestEmptyWidget(
-              title: 'No quotes found',
-              subtitle: 'Try a different search keyword.',
+          else if (visibleQuotes.isEmpty &&
+              state.status == QuotesStatus.loaded)
+            QuestEmptyWidget(
+              title: favoritesOnly ? 'No favorites yet' : 'No quotes found',
+              subtitle: favoritesOnly
+                  ? 'Tap the bookmark on a quote to save it here.'
+                  : 'Try a different search keyword.',
             )
           else
-            ...state.quotes.asMap().entries.map(
+            ...visibleQuotes.asMap().entries.map(
               (entry) => _QuoteCard(
                 quote: entry.value,
                 index: entry.key,
@@ -89,7 +130,7 @@ class QuotesTab extends ConsumerWidget {
   }
 }
 
-class _QuoteCard extends StatelessWidget {
+class _QuoteCard extends ConsumerWidget {
   const _QuoteCard({
     required this.quote,
     required this.index,
@@ -101,7 +142,10 @@ class _QuoteCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFavorite = ref.watch(
+      favoritesProvider.select((state) => state.isQuoteFavorite(quote.id)),
+    );
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -117,11 +161,34 @@ class _QuoteCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '"${quote.body}"',
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.bodyLarge,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      '"${quote.body}"',
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyLarge,
+                    ),
+                  ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    tooltip: isFavorite
+                        ? 'Remove from favorites'
+                        : 'Save to favorites',
+                    icon: Icon(
+                      isFavorite
+                          ? Icons.bookmark_rounded
+                          : Icons.bookmark_border_rounded,
+                      color: isFavorite
+                          ? AppColors.gold
+                          : context.palette.textSecondary,
+                    ),
+                    onPressed: () =>
+                        ref.read(favoritesProvider.notifier).toggleQuote(quote.id),
+                  ),
+                ],
               ),
               const SizedBox(height: 10),
               Row(

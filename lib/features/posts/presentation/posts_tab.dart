@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/empty_state_widget.dart';
 import '../../../core/widgets/error_state_widget.dart';
+import '../../favorites/presentation/favorites_provider.dart';
 import '../domain/post_entity.dart';
 import 'posts_provider.dart';
 
@@ -16,7 +17,15 @@ class PostsTab extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(postsProvider);
     final query = ref.watch(postsSearchProvider);
-    final posts = ref.watch(filteredPostsProvider);
+    final favorites = ref.watch(favoritesProvider);
+    final favoritesOnly = ref.watch(postFavoritesOnlyProvider);
+
+    final searched = ref.watch(filteredPostsProvider);
+    final posts = favoritesOnly
+        ? searched
+              .where((post) => favorites.isPostFavorite(post.id))
+              .toList(growable: false)
+        : searched;
 
     return RefreshIndicator(
       color: AppColors.gold,
@@ -60,6 +69,41 @@ class PostsTab extends ConsumerWidget {
           ),
           SliverToBoxAdapter(
             child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
+              child: Row(
+                children: [
+                  FilterChip(
+                    label: const Text('Favorites'),
+                    avatar: Icon(
+                      favoritesOnly
+                          ? Icons.bookmark_rounded
+                          : Icons.bookmark_border_rounded,
+                      size: 18,
+                      color: favoritesOnly
+                          ? AppColors.onAccent
+                          : AppColors.gold,
+                    ),
+                    selected: favoritesOnly,
+                    showCheckmark: false,
+                    selectedColor: AppColors.gold,
+                    backgroundColor: context.palette.surface,
+                    side: BorderSide(color: context.palette.border),
+                    labelStyle: Theme.of(context).textTheme.labelSmall
+                        ?.copyWith(
+                          color: favoritesOnly
+                              ? AppColors.onAccent
+                              : context.palette.textSecondary,
+                        ),
+                    onSelected: (value) => ref
+                        .read(postFavoritesOnlyProvider.notifier)
+                        .state = value,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
               padding: const EdgeInsets.fromLTRB(18, 12, 18, 6),
               child: AnimatedSwitcher(
                 duration: 200.ms,
@@ -79,11 +123,13 @@ class PostsTab extends ConsumerWidget {
               ),
             )
           else if (state.status == PostsStatus.loaded && posts.isEmpty)
-            const SliverFillRemaining(
+            SliverFillRemaining(
               hasScrollBody: false,
               child: QuestEmptyWidget(
-                title: 'No posts found',
-                subtitle: 'Try a different search keyword.',
+                title: favoritesOnly ? 'No favorites yet' : 'No posts found',
+                subtitle: favoritesOnly
+                    ? 'Tap the bookmark on a post to save it here.'
+                    : 'Try a different search keyword.',
               ),
             )
           else
@@ -113,7 +159,7 @@ class PostsTab extends ConsumerWidget {
   }
 }
 
-class _PostCard extends StatelessWidget {
+class _PostCard extends ConsumerWidget {
   const _PostCard({
     required this.post,
     required this.index,
@@ -125,7 +171,10 @@ class _PostCard extends StatelessWidget {
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFavorite = ref.watch(
+      favoritesProvider.select((state) => state.isPostFavorite(post.id)),
+    );
     return Container(
       decoration: BoxDecoration(
         color: context.palette.surface,
@@ -140,11 +189,36 @@ class _PostCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                post.title,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.titleMedium,
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      post.title,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                  ),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(999),
+                    onTap: () => ref
+                        .read(favoritesProvider.notifier)
+                        .togglePost(post.id),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: Icon(
+                        isFavorite
+                            ? Icons.bookmark_rounded
+                            : Icons.bookmark_border_rounded,
+                        size: 18,
+                        color: isFavorite
+                            ? AppColors.gold
+                            : context.palette.textSecondary,
+                      ),
+                    ),
+                  ),
+                ],
               ),
               const Spacer(),
               Text(

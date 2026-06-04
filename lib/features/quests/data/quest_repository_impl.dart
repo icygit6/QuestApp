@@ -66,6 +66,12 @@ class QuestRepositoryImpl implements QuestRepository {
 
   @override
   Future<Either<Failure, QuestEntity>> completeQuest(QuestEntity quest) async {
+    // User-created quests have no API counterpart, so PUT /todos/{id} would
+    // 404. Record completion locally (same store as API quests) and return.
+    if (quest.id >= kCustomQuestIdBase) {
+      await _recordCompletion(quest.id);
+      return Right(quest.copyWith(isCompleted: true));
+    }
     try {
       final updated = await _remoteDataSource.completeQuest(
         QuestModel.fromEntity(quest),

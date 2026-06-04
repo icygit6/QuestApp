@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -19,6 +20,15 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
+  // Initialise Firebase for Google Sign-In. Wrapped so a missing/misconfigured
+  // google-services.json degrades gracefully: the rest of QuestBoard still
+  // boots and only the Google button fails (handled in GoogleAuthService).
+  try {
+    await Firebase.initializeApp();
+  } catch (error) {
+    debugPrint('Firebase initialization failed: $error');
+  }
+
   try {
     await dotenv.load(fileName: '.env');
   } catch (_) {}
@@ -34,8 +44,10 @@ Future<void> main() async {
     Hive.registerAdapter(DailyRecordAdapter());
   }
   await Hive.openBox<QuestModel>('quests');
+  await Hive.openBox<QuestModel>('user_quests');
   await Hive.openBox<Achievement>('achievements');
   await Hive.openBox<DailyRecord>('daily');
+  await Hive.openBox<String>('user_posts');
 
   final preferences = await SharedPreferences.getInstance();
 

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/widgets/error_state_widget.dart';
+import '../../favorites/presentation/favorites_provider.dart';
 import '../domain/quote_entity.dart';
 import 'quotes_provider.dart';
 
@@ -69,13 +70,16 @@ class _QuoteDetailLoading extends StatelessWidget {
   }
 }
 
-class _QuoteDetailBody extends StatelessWidget {
+class _QuoteDetailBody extends ConsumerWidget {
   const _QuoteDetailBody({required this.quote});
 
   final QuoteEntity quote;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isFavorite = ref.watch(
+      favoritesProvider.select((state) => state.isQuoteFavorite(quote.id)),
+    );
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -84,6 +88,21 @@ class _QuoteDetailBody extends StatelessWidget {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: const Text('Quote'),
+        actions: [
+          IconButton(
+            tooltip: isFavorite
+                ? 'Remove from favorites'
+                : 'Save to favorites',
+            icon: Icon(
+              isFavorite
+                  ? Icons.bookmark_rounded
+                  : Icons.bookmark_border_rounded,
+              color: isFavorite ? AppColors.gold : null,
+            ),
+            onPressed: () =>
+                ref.read(favoritesProvider.notifier).toggleQuote(quote.id),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),

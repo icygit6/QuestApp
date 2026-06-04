@@ -18,7 +18,9 @@ import '../../auth/presentation/auth_provider.dart';
 import '../../gamification/domain/achievement.dart';
 import '../../gamification/presentation/gamification_provider.dart';
 import '../domain/quest_entity.dart';
+import 'custom_quest_provider.dart';
 import 'quest_card_widget.dart';
+import 'quest_form_sheet.dart';
 import 'quest_provider.dart';
 
 class QuestListScreen extends ConsumerStatefulWidget {
@@ -109,6 +111,13 @@ class _QuestListScreenState extends ConsumerState<QuestListScreen> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => showQuestFormSheet(context, userId: user?.id ?? 0),
+        backgroundColor: AppColors.gold,
+        foregroundColor: AppColors.onAccent,
+        icon: const Icon(Icons.add_rounded),
+        label: const Text('New Quest'),
+      ),
       body: Stack(
         children: [
           RefreshIndicator(
@@ -189,6 +198,16 @@ class _QuestListScreenState extends ConsumerState<QuestListScreen> {
                                   extra: quest,
                                 ),
                                 onComplete: () => _completeQuest(quest),
+                                onEdit: quest.isCustom
+                                    ? () => showQuestFormSheet(
+                                        context,
+                                        userId: user?.id ?? 0,
+                                        existing: quest,
+                                      )
+                                    : null,
+                                onDelete: quest.isCustom
+                                    ? () => _confirmDeleteQuest(quest)
+                                    : null,
                               ),
                               if (index == 0 && _showSwipeHint)
                                 Positioned(
@@ -320,6 +339,49 @@ class _QuestListScreenState extends ConsumerState<QuestListScreen> {
     }
     if (event.leveledUp && mounted) {
       await _showLevelUpDialog(context, event.newLevel);
+    }
+  }
+
+  Future<void> _confirmDeleteQuest(QuestEntity quest) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: context.palette.surface,
+          title: const Text('Delete quest?'),
+          content: Text('"${quest.title}" will be removed permanently.'),
+          actions: [
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.gold,
+                side: const BorderSide(color: AppColors.gold),
+              ),
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('CANCEL'),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.danger,
+                foregroundColor: Colors.white,
+              ),
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('DELETE'),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !mounted) {
+      return;
+    }
+    await ref.read(customQuestsProvider.notifier).delete(quest.id);
+    if (mounted) {
+      showQuestSnackBar(
+        context,
+        message: 'Quest deleted.',
+        icon: Icons.delete_outline_rounded,
+        color: AppColors.medium,
+      );
     }
   }
 
@@ -570,6 +632,13 @@ class _FilterRow extends ConsumerWidget {
     final difficulty = ref.watch(difficultyFilterProvider);
     final category = ref.watch(categoryFilterProvider);
     final completed = ref.watch(completionFilterProvider);
+    final quests = ref.watch(questsProvider).quests;
+
+    int difficultyCount(QuestDifficulty value) =>
+        quests.where((quest) => quest.difficulty == value).length;
+    int categoryCount(QuestCategory value) =>
+        quests.where((quest) => quest.category == value).length;
+    final completedCount = quests.where((quest) => quest.isCompleted).length;
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -586,7 +655,7 @@ class _FilterRow extends ConsumerWidget {
           ),
           for (final item in QuestDifficulty.values)
             _FilterChip(
-              label: item.label,
+              label: '${item.label} (${difficultyCount(item)})',
               selected: difficulty == item.label,
               onSelected: () {
                 ref.read(difficultyFilterProvider.notifier).state =
@@ -594,7 +663,7 @@ class _FilterRow extends ConsumerWidget {
               },
             ),
           _FilterChip(
-            label: AppStrings.completed,
+            label: '${AppStrings.completed} ($completedCount)',
             selected: completed,
             onSelected: () {
               ref.read(completionFilterProvider.notifier).state = !completed;
@@ -602,7 +671,7 @@ class _FilterRow extends ConsumerWidget {
           ),
           for (final item in QuestCategory.values)
             _FilterChip(
-              label: item.label,
+              label: '${item.label} (${categoryCount(item)})',
               selected: category == item.label,
               onSelected: () {
                 ref.read(categoryFilterProvider.notifier).state =

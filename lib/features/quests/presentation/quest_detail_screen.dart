@@ -131,26 +131,40 @@ class _QuestDetailScreenState extends ConsumerState<QuestDetailScreen> {
     setState(() => _isCompleting = true);
     await HapticFeedback.mediumImpact();
 
-    final failure = await ref.read(questsProvider.notifier).complete(quest);
-    if (failure != null) {
+    try {
+      final failure = await ref.read(questsProvider.notifier).complete(quest);
+      if (failure != null) {
+        if (mounted) {
+          showQuestSnackBar(
+            context,
+            message: failure.message,
+            icon: Icons.error_outline_rounded,
+            color: AppColors.danger,
+          );
+        }
+        return;
+      }
+
+      final event = await ref
+          .read(gamificationProvider.notifier)
+          .completeQuest(quest);
       if (mounted) {
-        setState(() => _isCompleting = false);
+        await _showCompletion(context, event);
+      }
+    } catch (error, stack) {
+      debugPrint('completeQuest error: $error\n$stack');
+      if (mounted) {
         showQuestSnackBar(
           context,
-          message: failure.message,
+          message: 'Something went wrong. Please try again.',
           icon: Icons.error_outline_rounded,
           color: AppColors.danger,
         );
       }
-      return;
-    }
-
-    final event = await ref
-        .read(gamificationProvider.notifier)
-        .completeQuest(quest);
-    if (mounted) {
-      setState(() => _isCompleting = false);
-      await _showCompletion(context, event);
+    } finally {
+      if (mounted) {
+        setState(() => _isCompleting = false);
+      }
     }
   }
 

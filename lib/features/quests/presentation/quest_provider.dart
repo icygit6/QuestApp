@@ -12,6 +12,7 @@ import '../domain/complete_quest_usecase.dart';
 import '../domain/get_quests_usecase.dart';
 import '../domain/quest_entity.dart';
 import '../domain/quest_repository.dart';
+import 'custom_quest_provider.dart';
 
 final questBoxProvider = Provider<Box<QuestModel>>(
   (ref) => Hive.box<QuestModel>('quests'),
@@ -41,13 +42,21 @@ final completeQuestUseCaseProvider = Provider<CompleteQuestUseCase>(
   (ref) => CompleteQuestUseCase(ref.watch(questRepositoryProvider)),
 );
 
-final questsProvider = StateNotifierProvider<QuestsNotifier, QuestsState>(
-  (ref) => QuestsNotifier(
+final questsProvider = StateNotifierProvider<QuestsNotifier, QuestsState>((
+  ref,
+) {
+  final notifier = QuestsNotifier(
     getQuestsUseCase: ref.watch(getQuestsUseCaseProvider),
     completeQuestUseCase: ref.watch(completeQuestUseCaseProvider),
     userId: ref.watch(authStateProvider).user?.id,
-  )..load(refresh: true),
-);
+    customQuests: ref.read(customQuestsProvider),
+  )..load(refresh: true);
+  // Keep the merged list in sync as the user creates/edits/deletes quests.
+  ref.listen<List<QuestEntity>>(customQuestsProvider, (_, next) {
+    notifier.setCustomQuests(next);
+  });
+  return notifier;
+});
 
 final searchQueryProvider = StateProvider<String>((ref) => '');
 
@@ -137,9 +146,11 @@ class QuestsNotifier extends StateNotifier<QuestsState> {
     required GetQuestsUseCase getQuestsUseCase,
     required CompleteQuestUseCase completeQuestUseCase,
     required int? userId,
+    List<QuestEntity> customQuests = const <QuestEntity>[],
   }) : _getQuestsUseCase = getQuestsUseCase,
        _completeQuestUseCase = completeQuestUseCase,
        _userId = userId,
+       _custom = customQuests,
        super(QuestsState.initial());
 
   static const _pageSize = 20;
@@ -148,7 +159,29 @@ class QuestsNotifier extends StateNotifier<QuestsState> {
   final CompleteQuestUseCase _completeQuestUseCase;
   final int? _userId;
 
+  /// User-created quests, always shown on top of the API quests.
+  List<QuestEntity> _custom;
+
   int _skip = 0;
+
+  /// Prepends custom quests to [apiQuests], dropping any API quest that shares
+  /// an id (custom ids never collide in practice, but dedupe defensively).
+  List<QuestEntity> _mergeCustom(List<QuestEntity> apiQuests) {
+    final customIds = {for (final quest in _custom) quest.id};
+    return [
+      ..._custom,
+      ...apiQuests.where((quest) => !customIds.contains(quest.id)),
+    ];
+  }
+
+  /// Called when the custom-quest store changes; re-merges without refetching.
+  void setCustomQuests(List<QuestEntity> custom) {
+    _custom = custom;
+    final apiQuests = state.quests
+        .where((quest) => !quest.isCustom)
+        .toList(growable: false);
+    state = state.copyWith(quests: _mergeCustom(apiQuests));
+  }
 
   /// Loads the first quest page or refreshes from the start.
   Future<void> load({bool refresh = false}) async {
@@ -176,7 +209,7 @@ class QuestsNotifier extends StateNotifier<QuestsState> {
         _skip = quests.length;
         return state.copyWith(
           status: QuestStatus.loaded,
-          quests: quests,
+          quests: _mergeCustom(quests),
           hasMore: quests.length >= _pageSize && _userId == null,
           isFetchingMore: false,
         );
@@ -202,12 +235,16 @@ class QuestsNotifier extends StateNotifier<QuestsState> {
           state.copyWith(message: failure.message, isFetchingMore: false),
       (quests) {
         _skip += quests.length;
-        final merged = {
-          for (final quest in state.quests) quest.id: quest,
-          for (final quest in quests) quest.id: quest,
-        }.values.toList()..sort((a, b) => a.id.compareTo(b.id));
+        // Merge only the API quests (exclude custom) then re-prepend custom so
+        // user quests stay pinned to the top regardless of their large ids.
+        final apiQuests =
+            {
+              for (final quest in state.quests)
+                if (!quest.isCustom) quest.id: quest,
+              for (final quest in quests) quest.id: quest,
+            }.values.toList()..sort((a, b) => a.id.compareTo(b.id));
         return state.copyWith(
-          quests: merged,
+          quests: _mergeCustom(apiQuests),
           hasMore: quests.length >= _pageSize,
           isFetchingMore: false,
           status: QuestStatus.loaded,

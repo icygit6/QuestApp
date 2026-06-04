@@ -1,3 +1,10 @@
+/// IDs at or above this value belong to quests the user created locally.
+///
+/// DummyJSON `/todos` ids are small (~250), so this range never collides with
+/// API quests. User quests use the creation timestamp (in ms, ~1.7e12) as id,
+/// which is comfortably above the base.
+const int kCustomQuestIdBase = 1000000000;
+
 /// Quest difficulty derived from DummyJSON todo id.
 enum QuestDifficulty {
   easy('Easy', 50),
@@ -82,6 +89,9 @@ class QuestEntity {
       QuestDifficulty.hard => 60,
     };
   }
+
+  /// Whether this quest was created by the user (vs. fetched from the API).
+  bool get isCustom => id >= kCustomQuestIdBase;
 
   QuestEntity copyWith({
     int? id,

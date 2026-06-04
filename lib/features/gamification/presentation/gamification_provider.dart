@@ -205,7 +205,12 @@ class GamificationNotifier extends StateNotifier<GamificationState> {
       achievements: achievements,
     );
     await _persist();
-    _ref.invalidate(leaderboardProvider);
+    // leaderboardProvider already auto-invalidates because it watches
+    // gamificationProvider — the explicit invalidate is only a best-effort
+    // hint and must not propagate failures.
+    try {
+      _ref.invalidate(leaderboardProvider);
+    } catch (_) {}
 
     return GamificationEvent(
       xpGained: xpGained,

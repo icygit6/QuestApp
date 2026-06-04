@@ -3,12 +3,19 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/widgets/quest_snack_bar.dart';
 import '../../gamification/presentation/gamification_provider.dart';
 import 'settings_provider.dart';
+
+/// App version read from the platform bundle, formatted for display.
+final appVersionProvider = FutureProvider<String>((ref) async {
+  final info = await PackageInfo.fromPlatform();
+  return 'Version ${info.version} (build ${info.buildNumber})';
+});
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -76,7 +83,10 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'Version 0.1.0',
+                  ref.watch(appVersionProvider).maybeWhen(
+                    data: (version) => version,
+                    orElse: () => 'Version 0.1.0',
+                  ),
                   style: Theme.of(context).textTheme.labelSmall,
                 ),
               ],

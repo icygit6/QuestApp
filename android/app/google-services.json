@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "73556451707",
+    "project_id": "questboard-d086e",
+    "storage_bucket": "questboard-d086e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:73556451707:android:16ff50427488a53eb2ddde",
+        "android_client_info": {
+          "package_name": "com.questboard.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "73556451707-icjc6k9ipveq8720ursbfdgb9hc2qg86.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.questboard.app",
+            "certificate_hash": "e405bdedb1915f48fcdf05604411c1872ed1ee0c"
+          }
+        },
+        {
+          "client_id": "73556451707-7jlp17qp1r1c819ps6i6skehjfgvvm9t.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB-WGWEVV-qlxKTecTSs5k_Bo6xqSocRKI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "73556451707-7jlp17qp1r1c819ps6i6skehjfgvvm9t.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

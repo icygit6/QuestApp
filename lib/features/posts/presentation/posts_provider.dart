@@ -1,8 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hive/hive.dart';
 
 import '../../../core/providers.dart';
+import '../data/posts_local_datasource.dart';
 import '../data/posts_remote_datasource.dart';
 import '../data/posts_repository_impl.dart';
+import '../domain/comment_entity.dart';
 import '../domain/post_entity.dart';
 import '../domain/post_repository.dart';
 
@@ -10,8 +13,19 @@ final postsRemoteDataSourceProvider = Provider<PostsRemoteDataSource>(
   (ref) => PostsRemoteDataSource(ref.watch(dioClientProvider)),
 );
 
+final userPostsBoxProvider = Provider<Box<String>>(
+  (ref) => Hive.box<String>('user_posts'),
+);
+
+final postsLocalDataSourceProvider = Provider<PostsLocalDataSource>(
+  (ref) => PostsLocalDataSource(ref.watch(userPostsBoxProvider)),
+);
+
 final postsRepositoryProvider = Provider<PostRepository>(
-  (ref) => PostsRepositoryImpl(ref.watch(postsRemoteDataSourceProvider)),
+  (ref) => PostsRepositoryImpl(
+    ref.watch(postsRemoteDataSourceProvider),
+    ref.watch(postsLocalDataSourceProvider),
+  ),
 );
 
 final postsProvider = StateNotifierProvider<PostsNotifier, PostsState>(
@@ -43,6 +57,14 @@ final postDetailProvider = FutureProvider.family<PostEntity, int>((
   final result = await ref.watch(postsRepositoryProvider).getPostDetail(id);
   return result.fold((failure) => throw failure.message, (post) => post);
 });
+
+final postCommentsProvider =
+    FutureProvider.family<List<CommentEntity>, int>((ref, postId) async {
+      final result = await ref
+          .watch(postsRepositoryProvider)
+          .getComments(postId);
+      return result.fold((failure) => throw failure.message, (comments) => comments);
+    });
 
 enum PostsStatus { loading, loaded, error }
 
@@ -88,6 +110,26 @@ class PostsNotifier extends StateNotifier<PostsState> {
       super(PostsState.initial());
 
   final PostRepository _repository;
+
+  /// Creates a new post. Returns an error message on failure, null on success.
+  Future<String?> create({
+    required String title,
+    required String body,
+    required int userId,
+  }) async {
+    final result = await _repository.createPost(
+      title: title,
+      body: body,
+      userId: userId,
+    );
+    return result.fold(
+      (failure) => failure.message,
+      (post) {
+        state = state.copyWith(posts: [post, ...state.posts]);
+        return null;
+      },
+    );
+  }
 
   Future<void> load({bool refresh = false}) async {
     if (refresh && state.posts.isNotEmpty) {

@@ -105,6 +105,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     onPressed: _login,
                   ),
                   const SizedBox(height: 18),
+                  const _OrDivider(),
+                  const SizedBox(height: 18),
+                  _GoogleSignInButton(
+                    isLoading: isLoading,
+                    onPressed: _loginWithGoogle,
+                  ),
+                  const SizedBox(height: 18),
                   Center(
                     child:
                         TextButton(
@@ -130,6 +137,93 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref
         .read(authStateProvider.notifier)
         .login(provider, _usernameController.text, _passwordController.text);
+  }
+
+  void _loginWithGoogle() {
+    FocusScope.of(context).unfocus();
+    ref.read(authStateProvider.notifier).loginWithGoogle();
+  }
+}
+
+/// "OR" separator between the credential form and the Google button.
+class _OrDivider extends StatelessWidget {
+  const _OrDivider();
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return Row(
+      children: [
+        Expanded(child: Divider(color: palette.border)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'OR',
+            style: Theme.of(
+              context,
+            ).textTheme.labelSmall?.copyWith(color: palette.textSecondary),
+          ),
+        ),
+        Expanded(child: Divider(color: palette.border)),
+      ],
+    );
+  }
+}
+
+/// Flat, theme-consistent "Sign in with Google" button.
+class _GoogleSignInButton extends StatelessWidget {
+  const _GoogleSignInButton({required this.isLoading, required this.onPressed});
+
+  final bool isLoading;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final palette = context.palette;
+    return SizedBox(
+      height: 52,
+      child: Material(
+        color: palette.surface,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: isLoading ? null : onPressed,
+          child: Ink(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: palette.border),
+            ),
+            child: Center(
+              child: isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: AppColors.gold,
+                      ),
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.g_mobiledata_rounded,
+                          size: 32,
+                          color: AppColors.gold,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Sign in with Google',
+                          style: Theme.of(context).textTheme.labelLarge
+                              ?.copyWith(color: palette.textPrimary),
+                        ),
+                      ],
+                    ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 

@@ -1,6 +1,8 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers.dart';
+import '../../../services/auth_service.dart';
 import '../data/auth_local_datasource.dart';
 import '../data/auth_remote_datasource.dart';
 import '../data/auth_repository_impl.dart';
@@ -34,6 +36,12 @@ final authLocalDataSourceProvider = Provider<AuthLocalDataSource>(
   ),
 );
 
+/// Google Sign-In + Firebase Authentication service. Stateless and safe to
+/// construct even when Firebase is not initialised (see [GoogleAuthService]).
+final googleAuthServiceProvider = Provider<GoogleAuthService>(
+  (ref) => GoogleAuthService(),
+);
+
 final authRepositoryProvider = Provider<AuthRepository>(
   (ref) => AuthRepositoryImpl(
     dummyRemoteDataSource: ref.watch(dummyAuthRemoteDataSourceProvider),
@@ -58,6 +66,7 @@ final authStateProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
     repository: ref.watch(authRepositoryProvider),
     loginUseCase: ref.watch(loginUseCaseProvider),
     registerUseCase: ref.watch(registerUseCaseProvider),
+    googleAuthService: ref.watch(googleAuthServiceProvider),
   )..restoreSession();
 });
 
@@ -90,25 +99,36 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required AuthRepository repository,
     required LoginUseCase loginUseCase,
     required RegisterUseCase registerUseCase,
+    required GoogleAuthService googleAuthService,
   }) : _repository = repository,
        _loginUseCase = loginUseCase,
        _registerUseCase = registerUseCase,
+       _googleAuthService = googleAuthService,
        super(const AuthState.loading());
 
   final AuthRepository _repository;
   final LoginUseCase _loginUseCase;
   final RegisterUseCase _registerUseCase;
+  final GoogleAuthService _googleAuthService;
 
-  /// Restores persisted auth state from secure storage.
+  /// Restores persisted auth state.
+  ///
+  /// Tries the credential providers (DummyJSON / FavQs / Backendless) first via
+  /// secure storage. If none is persisted, falls back to a Firebase/Google
+  /// session, which Firebase persists on the device across restarts.
   Future<void> restoreSession() async {
     state = const AuthState.loading();
     final result = await _repository.restoreSession();
-    state = result.fold(
-      (failure) => AuthState.error(failure.message),
-      (user) => user == null
-          ? const AuthState.unauthenticated()
-          : AuthState.authenticated(user),
-    );
+    state = result.fold((failure) => AuthState.error(failure.message), (user) {
+      if (user != null) {
+        return AuthState.authenticated(user);
+      }
+      final googleUser = _googleAuthService.getCurrentUser();
+      if (googleUser != null) {
+        return AuthState.authenticated(_mapFirebaseUser(googleUser));
+      }
+      return const AuthState.unauthenticated();
+    });
   }
 
   /// Logs in through the selected provider.
@@ -145,9 +165,62 @@ class AuthNotifier extends StateNotifier<AuthState> {
     );
   }
 
-  /// Logs out and clears credentials.
+  /// Logs in with Google via Firebase Authentication.
+  ///
+  /// A `null` credential means the user dismissed the Google picker, so we
+  /// quietly return to the unauthenticated state without an error toast.
+  Future<void> loginWithGoogle() async {
+    state = const AuthState.loading();
+    try {
+      final credential = await _googleAuthService.signInWithGoogle();
+      final user = credential?.user;
+      if (user == null) {
+        state = const AuthState.unauthenticated();
+        return;
+      }
+      state = AuthState.authenticated(_mapFirebaseUser(user));
+    } catch (error) {
+      state = AuthState.error(_readableError(error));
+    }
+  }
+
+  /// Logs out and clears credentials from every provider, including Google.
   Future<void> logout() async {
     await _repository.logout();
+    await _googleAuthService.signOut();
     state = const AuthState.unauthenticated();
+  }
+
+  /// Adapts a Firebase [User] to the app's [UserEntity].
+  ///
+  /// Google sign-in does not flow through the username/password datasources, so
+  /// it is tagged with the default [AuthProviderType] and is not persisted in
+  /// secure storage — Firebase manages its own session.
+  UserEntity _mapFirebaseUser(User user) {
+    final displayName = (user.displayName ?? '').trim();
+    final parts = displayName.isEmpty
+        ? const <String>[]
+        : displayName.split(RegExp(r'\s+'));
+    final email = user.email ?? '';
+    final username = email.isNotEmpty
+        ? email.split('@').first
+        : (displayName.isEmpty ? 'adventurer' : displayName);
+    return UserEntity(
+      // Mask to a positive int: hashCode can be negative, and this id is used
+      // downstream as a post userId and leaderboard entry key.
+      id: user.uid.hashCode & 0x7fffffff,
+      username: username,
+      email: email,
+      firstName: parts.isNotEmpty ? parts.first : '',
+      lastName: parts.length > 1 ? parts.sublist(1).join(' ') : '',
+      image: user.photoURL ?? '',
+    );
+  }
+
+  /// Unwraps the `Exception: <message>` prefix for display.
+  String _readableError(Object error) {
+    const prefix = 'Exception: ';
+    final text = error.toString();
+    return text.startsWith(prefix) ? text.substring(prefix.length) : text;
   }
 }

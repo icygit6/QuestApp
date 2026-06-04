@@ -12,6 +12,8 @@ class QuestCard extends StatelessWidget {
     required this.onComplete,
     super.key,
     this.justCompleted = false,
+    this.onEdit,
+    this.onDelete,
   });
 
   final QuestEntity quest;
@@ -19,6 +21,10 @@ class QuestCard extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback onComplete;
   final bool justCompleted;
+
+  /// Edit/delete handlers — only wired for user-created quests.
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +82,8 @@ class QuestCard extends StatelessWidget {
                       justCompleted: justCompleted,
                       onTap: onTap,
                       onComplete: onComplete,
+                      onEdit: onEdit,
+                      onDelete: onDelete,
                     ),
                   ),
                 )
@@ -94,6 +102,8 @@ class _QuestCardFrame extends StatelessWidget {
     required this.justCompleted,
     required this.onComplete,
     this.onTap,
+    this.onEdit,
+    this.onDelete,
   });
 
   final QuestEntity quest;
@@ -101,6 +111,8 @@ class _QuestCardFrame extends StatelessWidget {
   final bool justCompleted;
   final VoidCallback? onTap;
   final VoidCallback onComplete;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   @override
   Widget build(BuildContext context) {
@@ -263,6 +275,30 @@ class _QuestCardFrame extends StatelessWidget {
                   onComplete();
                 },
               ),
+              if (quest.isCustom && onEdit != null)
+                ListTile(
+                  leading: const Icon(Icons.edit_rounded),
+                  title: const Text('Edit Quest'),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    onEdit!.call();
+                  },
+                ),
+              if (quest.isCustom && onDelete != null)
+                ListTile(
+                  leading: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: AppColors.danger,
+                  ),
+                  title: const Text(
+                    'Delete Quest',
+                    style: TextStyle(color: AppColors.danger),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    onDelete!.call();
+                  },
+                ),
               ListTile(
                 leading: const Icon(Icons.skip_next_rounded),
                 title: const Text('Skip'),
