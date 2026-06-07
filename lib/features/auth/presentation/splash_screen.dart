@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:lottie/lottie.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_strings.dart';
@@ -44,7 +43,17 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Lottie.asset('assets/animations/loading.json', height: 168),
+            Image.asset('assets/images/logo.png', height: 168)
+                .animate()
+                .fadeIn(duration: 500.ms)
+                .scale(
+                  begin: const Offset(0.7, 0.7),
+                  duration: 600.ms,
+                  curve: Curves.easeOutBack,
+                )
+                .then()
+                .shimmer(duration: 1800.ms, color: AppColors.goldGlow),
+            const SizedBox(height: 16),
             Text(
                   AppStrings.appTitle,
                   style: Theme.of(context).textTheme.displayLarge?.copyWith(

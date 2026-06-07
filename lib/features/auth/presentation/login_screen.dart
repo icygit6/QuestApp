@@ -62,11 +62,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(
-                    Icons.shield_moon_rounded,
-                    color: AppColors.gold,
-                    size: 74,
-                  ).animate().scale(curve: Curves.elasticOut),
+                  Image.asset('assets/images/logo.png', height: 110)
+                      .animate()
+                      .scale(curve: Curves.elasticOut, duration: 600.ms)
+                      .then()
+                      .shimmer(duration: 1800.ms, color: AppColors.goldGlow),
                   const SizedBox(height: 18),
                   Text(
                     AppStrings.appTitle,

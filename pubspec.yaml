@@ -39,9 +39,26 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
+  flutter_launcher_icons: ^0.14.3
   hive_generator: ^2.0.1
   json_serializable: ^6.8.0
   retrofit_generator: ^8.1.0
+
+# App launcher icon generation — run: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "assets/images/logo.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  min_sdk_android: 21
+  # Android 8+ adaptive icon: navy background matches the logo's dark canvas,
+  # foreground is the gold shield emblem (outer corners are cropped by the mask)
+  adaptive_icon_background: "#0A0E1A"
+  adaptive_icon_foreground: "assets/images/logo.png"
+  web:
+    generate: false
+  windows:
+    generate: false
 
 flutter:
   uses-material-design: true
